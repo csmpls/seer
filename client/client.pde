@@ -3,6 +3,7 @@ import processing.serial.*;
 import mindset.*;
 import processing.net.*;
 import java.util.Iterator;
+import controlP5.*;
 
 // Declare a client
 Client client;
@@ -11,8 +12,8 @@ RequestThread requestThread;
 // boolean to check if the server has accepted our handshake
 boolean serverReceivedHandshake = false;
 
-// TEMPORARY: String to hold the user's name
-String name ="nick";
+// String to hold the user's name
+String name;
 // Used to indicate a new message
 float newMessageColor = 0;
 // A String to hold whatever the server says
@@ -24,6 +25,7 @@ Neurosky neurosky = new Neurosky();
 String com_port = "/dev/tty.MindWave";
 
 PFont f;
+ControlP5 cp5; 
 
 void setup() {
   
@@ -39,11 +41,21 @@ void setup() {
   // start a request thread
   requestThread = new RequestThread();
   requestThread.start();
+
+  cp5 = new ControlP5(this);
+
+  cp5.addTextfield("username")
+     .setPosition(20,100)
+     .setSize(200,40)
+     .setFont(f)
+     .setFocus(true)
+     .setColor(color(220,220,220))
+     ;
 }
 
 
 void draw() {
-  background(255);
+  background(0);
 
   neurosky.update();
   
@@ -52,11 +64,13 @@ void draw() {
   textFont(f);
   textAlign(CENTER);
 
-  if (!serverReceivedHandshake) 
+  // if the user's set her name but we still aren't connected to server,
+  if (!serverReceivedHandshake && name !=null) 
     text("havent met server yet",width/2,140);
 
-  //draw list of all users
-  text(messageFromServer,width/2,200);
+  else
+    //draw list of all users
+    text(messageFromServer,width/2,200);
 
   // Fade message from server to white
   newMessageColor = constrain(newMessageColor+1,0,255); 
@@ -104,12 +118,22 @@ void draw() {
 }
 
 
+public void username(String theText) {
+  // automatically receives results from controller input
+  name = theText;
+  cp5.get(Textfield.class,"username").remove();
+}
+
+
 void sendUserHandshake() {
   //format for all messages to server: [ip]:[message]
   //handshake format is: [ip]:name,[name]
   String handshake = client.ip() + ":name," + name;
   client.write(handshake); 
 }
+
+
+
 
 // --------------- !
 // ----------------------- !a
@@ -141,6 +165,9 @@ void stop() {
 
 
 
+
+
+
 public class RequestThread extends Thread {
 
   private boolean running;
@@ -157,7 +184,7 @@ public class RequestThread extends Thread {
   void run() {
 
     while (running) { //
-      if (!serverReceivedHandshake) {
+      if (!serverReceivedHandshake && name!=null) {
         sendUserHandshake();
         println("attempted handshake");
       } else {

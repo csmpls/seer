@@ -39,6 +39,7 @@ float newMessageColor = 255;
 PFont f;
 String incomingMessage = "";
 
+
 public void setup() {
   size(400,200);
   f = createFont("Arial",9,true);
@@ -47,8 +48,9 @@ public void setup() {
   server = new Server(this, 5204);
   users = new ArrayList<EEGUser>(); 
   
-broadcastThread = new BroadcastThread();
-broadcastThread.start();
+
+  broadcastThread = new BroadcastThread();
+  broadcastThread.start();
 
 }
 
@@ -257,7 +259,7 @@ public class BroadcastThread extends Thread {
         
         //  WE CANNOT EXECUTE THIS CODE IF WE JUST GOT "CLIENT GOT END OF STREAM."
         // USER MUST BE REMOVED FROM OUR ARRAYLIST AND THIS CODE CANNOT BE REACHED!
-        if (client.input !=null)
+        //if (client.input !=null)
           //tell everyone about everyone's state
           server.write(getUserDataList());
         
