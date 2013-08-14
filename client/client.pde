@@ -1,9 +1,25 @@
+
+/*
+
+//////////////////////////////////////////
+
+          eye of sauron
+          client
+          (c) nick merrill 2013
+
+//////////////////////////////////////////
+
+*/
+
 import java.io.*;
 import processing.serial.*;
 import mindset.*;
 import processing.net.*;
 import java.util.Iterator;
 import controlP5.*;
+
+
+String server_ip = "127.0.0.1";
 
 // Declare a client
 Client client;
@@ -18,6 +34,7 @@ String name;
 float newMessageColor = 0;
 // A String to hold whatever the server says
 String messageFromServer = "";
+String my_ip;
 
 //Neurosky business
 Neurosky neurosky = new Neurosky();
@@ -37,7 +54,7 @@ void setup() {
   neurosky.initialize(this, com_port, false);
 
   //connect to the server
-  client = new Client(this,"127.0.0.1", 5204);
+  client = new Client(this,server_ip, 5204);
   // start a request thread
   requestThread = new RequestThread();
   requestThread.start();
@@ -87,8 +104,13 @@ void draw() {
     // (in the format list:name,data;name,data )
     String[] message = messageFromServer.split("[:]");
 
+    //is this the packet telling us our IP, as the server sees it?
+    //if our ip is null, we assume that the new ip being announced is ours
+    if (message[0].equals("new") && my_ip == null) {
+      my_ip = message[1];
+    }
     // is this a handshake?
-    if (message[0].equals(client.ip())) {
+    if (message[0].equals(my_ip)) {
       //if so, we're all set.
       serverReceivedHandshake = true;
     }
@@ -128,7 +150,7 @@ public void username(String theText) {
 void sendUserHandshake() {
   //format for all messages to server: [ip]:[message]
   //handshake format is: [ip]:name,[name]
-  String handshake = client.ip() + ":name," + name;
+  String handshake = my_ip + ":name," + name;
   client.write(handshake); 
 }
 
@@ -153,7 +175,7 @@ void sendUserData() {
   //format for all messages to server: [ip]:[message]
   //format for user data is: [ip]:data,[name]
   int userData = (int)neurosky.attn_pulse;
-  String request = client.ip() + ":data," + userData;
+  String request = my_ip + ":data," + userData;
   println("sent my data over         " + request);
   client.write(request);
 }
@@ -183,12 +205,14 @@ public class RequestThread extends Thread {
 
   void run() {
 
-    while (running) { //
-      if (!serverReceivedHandshake && name!=null) {
-        sendUserHandshake();
-        println("attempted handshake");
-      } else {
-        sendUserData();
+    while (running) {
+      if (my_ip != null) {
+        if (!serverReceivedHandshake && name!=null) {
+          sendUserHandshake();
+          println("attempted handshake");
+        } else {
+          sendUserData();
+        }
       }
 
       //wait for interval

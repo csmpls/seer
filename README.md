@@ -1,5 +1,5 @@
 # Eye of Sauron 
-Given a group of people wearing neurosky headsets,Eye of Sauron uses BCI to see who in the group is engrossed in their work.
+Given a group of people wearing neurosky headsets, Eye of Sauron sees who in the group is paying attention.
 
 Works with an arbitrary number of Neurosky headsets. Connection can be over a LAN or over the Internet.
 

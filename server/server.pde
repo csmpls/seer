@@ -1,8 +1,15 @@
-// Learning Processing
-// Daniel Shiffman
-// http://www.learningprocessing.com
 
-// Example 19-1: Simple therapy server
+/*
+
+//////////////////////////////////////////
+
+          eye of sauron
+          server
+          (c) nick merrill 2013
+
+//////////////////////////////////////////
+
+*/
 
 // Import the net libraries
 import processing.net.*;
@@ -48,19 +55,24 @@ void draw() {
   // Print names or IPs of all connected users to the screen
   if (users.size() > 0) { 
     for (int i=0; i<users.size(); i++) {
+
+      try {
      
-      EEGUser u = users.get(i);
-      String output = "";
-      
-      if (u.name == null)
-        output += u.client.ip();
-      else
-        output += u.name();
+        EEGUser u = users.get(i);
+        String output = "";
 
-      if (u.data() != -666)
-        output += "......" + u.data;
+        if (u.name == null)
+          output += u.client.ip();
+        else
+          output += u.name();
 
-      text(output,60,height/2+(20*i));
+        if (u.data() != -666)
+          output += "......" + u.data;
+
+        text(output,60,height/2+(20*i));
+
+      } catch (Exception e) { /* if everyone's disconnected we'll just pass*/ }
+
     } 
   }
 
@@ -143,6 +155,7 @@ void process(String m) {
 // The serverEvent function is called whenever a new client connects.
 void serverEvent(Server server, Client client) {
   incomingMessage = "A new client has connected: " + client.ip();
+  server.write("new:" + client.ip());
   println(incomingMessage);
 
   //IMPT NOTE! we're making a new EEGUser with a processing.net.Client as its argument
