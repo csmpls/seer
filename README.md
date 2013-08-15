@@ -3,12 +3,14 @@ Given a group of people wearing neurosky headsets, Eye of Sauron sees who in the
 
 Grayed-out names are busy (focusing), names in white are available (not focusing).
 
-![screencap](http://cosmopol.is/sauron/screencap.png)
+![client screencap](http://cosmopol.is/sauron/client.png)
 
 To test it out locally, first run the server application, then run the client application.
 
 # Details
 The client/server framework is a simple implementation of multi-user BCI applications. 
+
+![server screencap](http://cosmopol.is/sauron/server.png)
 
 More abstractly, it is a simple framework for building any sort of multi-user application in Processing - a useful thing to have around in a collaborative software lab.
 
