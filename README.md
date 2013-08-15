@@ -1,4 +1,7 @@
 # Eye of Sauron 
+
+![collablab logo](http://collablab.northwestern.edu/images/logo_horiz.png)
+
 Given a group of people wearing neurosky headsets, Eye of Sauron sees who in the group is paying attention.
 
 Grayed-out names are busy (focusing), names in white are available (not focusing).
