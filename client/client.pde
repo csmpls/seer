@@ -17,6 +17,7 @@ import mindset.*;
 import processing.net.*;
 import java.util.Iterator;
 import controlP5.*;
+import ddf.minim.*;
 
 
 String server_ip = "10.0.1.12";
@@ -40,9 +41,12 @@ String my_ip;
 Neurosky neurosky = new Neurosky();
 //on mac /dev/     on windows, COM#
 String com_port = "/dev/tty.MindWave";
+Detector detector = new Detector(); //this is our focus detector
 
 PFont f;
 ControlP5 cp5; 
+Minim minim;
+AudioSample enter_foc_chime, leave_foc_chime;
 
 void setup() {
   
@@ -68,6 +72,16 @@ void setup() {
      .setFocus(true)
      .setColor(color(220,220,220))
      ;
+
+  //sounds to indicate entering and leaving focus
+  minim = new Minim(this);
+  enter_foc_chime = minim.loadSample(dataPath("enter_foc_chime.wav"), 512);
+  leave_foc_chime = minim.loadSample(dataPath("leave_foc_chime.wav"), 512);
+
+
+    // detector runs in a separate thread
+    // it samples the neurosky once every 250ms
+    detector.start();
 }
 
 
@@ -76,22 +90,23 @@ void draw() {
 
   neurosky.update();
   
-  // Display message from server
-  fill(newMessageColor);
-  textFont(f);
-  textAlign(CENTER);
+
 
   // if the user's set her name but we still aren't connected to server,
   if (!serverReceivedHandshake && name !=null) 
-    text("havent met server yet",width/2,140);
+    text("havent met server yet",40,140);
 
-  else
+  else if (name  != null)
     //draw list of all users
     drawClientList(messageFromServer); 
 
   // Fade message from server to white
-  newMessageColor = constrain(newMessageColor+1,0,255); 
+  newMessageColor = constrain(newMessageColor+1,200,255); 
   
+  //draw data from neurosky
+  drawNeuroskyFeedback();
+
+
   
   // If there is information available to read
   // (we know there is a message from the Server when there are greater than zero bytes available.)
@@ -140,10 +155,55 @@ void draw() {
 }
 
 void drawClientList(String msg) {
+  
+  
+  textFont(f);
+  textAlign(LEFT);
+
+  textSize(9);
+  text("CONNECTED USERS", 40, 60);
+
+  textSize(16);
+
   String userlist[] = msg.split(";");
   for (int i = 0; i < userlist.length; i++) {
-    text(userlist[i], 40, 40+(i*20));
+
+    try {
+      String user_data[] = userlist[i].split(",");
+      
+      //check if user is in focus mode
+      if(Integer.parseInt(user_data[1]) == 0)
+        fill(255);
+      else
+        fill(120);
+
+      text(user_data[0], 40, 80+(i*20));
+    } catch (Exception e) {}
   }
+}
+
+
+void drawNeuroskyFeedback() {
+ 
+  fill(newMessageColor);
+
+  //attention reading
+  textSize(9);
+  text("ATTN READING", 300,100);
+  textSize(16);
+  text(neurosky.attn_pulse, 300,120);
+
+  //focus detector reading
+  textSize(9);
+  text("FOCUS DETECTOR", 300,140);
+  if (detector.focus_mode) {
+    noStroke();
+    fill(220,255,200);
+  } else {
+    noFill();
+    stroke(255);
+  }
+      rect(310, 160, 40, 30);
 }
 
 
@@ -179,9 +239,14 @@ void sendUserHandshake() {
 // ----------------------- !
 // --------------- !
 void sendUserData() {
+ 
   //format for all messages to server: [ip]:[message]
   //format for user data is: [ip]:data,[name]
-  int userData = (int)neurosky.attn_pulse;
+ 
+  int userData = 0;
+  if (detector.focus_mode)
+    userData = 1;
+
   String request = my_ip + ":data," + userData;
   println("sent my data over         " + request);
   client.write(request);

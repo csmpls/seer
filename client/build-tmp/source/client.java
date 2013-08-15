@@ -9,6 +9,7 @@ import mindset.*;
 import processing.net.*; 
 import java.util.Iterator; 
 import controlP5.*; 
+import ddf.minim.*; 
 
 import java.util.HashMap; 
 import java.util.ArrayList; 
@@ -42,6 +43,7 @@ public class client extends PApplet {
 
 
 
+
 String server_ip = "10.0.1.12";
 
 // Declare a client
@@ -63,9 +65,12 @@ String my_ip;
 Neurosky neurosky = new Neurosky();
 //on mac /dev/     on windows, COM#
 String com_port = "/dev/tty.MindWave";
+Detector detector = new Detector(); //this is our focus detector
 
 PFont f;
 ControlP5 cp5; 
+Minim minim;
+AudioSample enter_foc_chime, leave_foc_chime;
 
 public void setup() {
   
@@ -91,6 +96,16 @@ public void setup() {
      .setFocus(true)
      .setColor(color(220,220,220))
      ;
+
+  //sounds to indicate entering and leaving focus
+  minim = new Minim(this);
+  enter_foc_chime = minim.loadSample(dataPath("enter_foc_chime.wav"), 512);
+  leave_foc_chime = minim.loadSample(dataPath("leave_foc_chime.wav"), 512);
+
+
+    // detector runs in a separate thread
+    // it samples the neurosky once every 250ms
+    detector.start();
 }
 
 
@@ -99,22 +114,23 @@ public void draw() {
 
   neurosky.update();
   
-  // Display message from server
-  fill(newMessageColor);
-  textFont(f);
-  textAlign(CENTER);
+
 
   // if the user's set her name but we still aren't connected to server,
   if (!serverReceivedHandshake && name !=null) 
-    text("havent met server yet",width/2,140);
+    text("havent met server yet",40,140);
 
-  else
+  else if (name  != null)
     //draw list of all users
     drawClientList(messageFromServer); 
 
   // Fade message from server to white
-  newMessageColor = constrain(newMessageColor+1,0,255); 
+  newMessageColor = constrain(newMessageColor+1,200,255); 
   
+  //draw data from neurosky
+  drawNeuroskyFeedback();
+
+
   
   // If there is information available to read
   // (we know there is a message from the Server when there are greater than zero bytes available.)
@@ -163,10 +179,55 @@ public void draw() {
 }
 
 public void drawClientList(String msg) {
+  
+  
+  textFont(f);
+  textAlign(LEFT);
+
+  textSize(9);
+  text("CONNECTED USERS", 40, 60);
+
+  textSize(16);
+
   String userlist[] = msg.split(";");
   for (int i = 0; i < userlist.length; i++) {
-    text(userlist[i], 40, 40+(i*20));
+
+    try {
+      String user_data[] = userlist[i].split(",");
+      
+      //check if user is in focus mode
+      if(Integer.parseInt(user_data[1]) == 0)
+        fill(255);
+      else
+        fill(120);
+
+      text(user_data[0], 40, 80+(i*20));
+    } catch (Exception e) {}
   }
+}
+
+
+public void drawNeuroskyFeedback() {
+ 
+  fill(newMessageColor);
+
+  //attention reading
+  textSize(9);
+  text("ATTN READING", 300,100);
+  textSize(16);
+  text(neurosky.attn_pulse, 300,120);
+
+  //focus detector reading
+  textSize(9);
+  text("FOCUS DETECTOR", 300,140);
+  if (detector.focus_mode) {
+    noStroke();
+    fill(220,255,200);
+  } else {
+    noFill();
+    stroke(255);
+  }
+      rect(310, 160, 40, 30);
 }
 
 
@@ -202,9 +263,14 @@ public void sendUserHandshake() {
 // ----------------------- !
 // --------------- !
 public void sendUserData() {
+ 
   //format for all messages to server: [ip]:[message]
   //format for user data is: [ip]:data,[name]
-  int userData = (int)neurosky.attn_pulse;
+ 
+  int userData = 0;
+  if (detector.focus_mode)
+    userData = 1;
+
   String request = my_ip + ":data," + userData;
   println("sent my data over         " + request);
   client.write(request);
@@ -255,6 +321,102 @@ public class RequestThread extends Thread {
 
 public void stop() {
   client.stop();
+}
+public class Detector extends Thread {
+
+	// timer elements
+	private boolean running;
+	private int wait;
+	private int count;
+
+	int enter_foc_num_peaks = 40;
+	int enter_foc_peak_thresh = 60; // counts as peak when attn OVER this number
+	float enter_foc_time = 45; // in seconds
+
+	int leave_foc_num_peaks = 45;
+	int leave_foc_peak_thresh = 36; // counts as peak when attn UNDER this number
+	float leave_foc_time = 45; // in seconds
+
+	int peaks = 0;
+
+	boolean focus_mode = false;
+
+	Detector() {
+
+		running=false;
+		wait=250;
+		count=0;
+
+	}
+
+	public void start() {
+
+		running=true;
+		super.start();
+		
+	}
+
+	public void run() {
+	
+		while (running) {
+
+			count++;
+
+			if (!focus_mode) {
+
+				if (count > enter_foc_time*4) {
+					peaks--;
+					count=0;
+				}
+
+				if (neurosky.attn > enter_foc_peak_thresh)
+					peaks++; 
+
+				if (peaks > enter_foc_num_peaks) {
+					focus_mode = true;
+					peaks=0;
+					count=0;
+
+					//play a sound to indicate entering focus
+					enter_foc_chime.trigger();
+				}
+
+			} else if (focus_mode) {
+
+				if (count > leave_foc_time*4) {
+					peaks--;
+					count=0;
+				}
+
+				if (neurosky.attn < leave_foc_peak_thresh)
+					peaks++; 
+
+				if (peaks > leave_foc_num_peaks) {
+					focus_mode = false;
+					peaks=0;
+					count=0;
+
+					//play  a sound to indicate dropping from focus
+					leave_foc_chime.trigger();
+				}
+
+			}
+
+			peaks = constrain(peaks,0,999);
+
+			
+			//wait for interval
+			try { 
+				sleep((long)(wait));
+			} 
+			catch (Exception e) {}
+		}
+}
+
+	public boolean focus_detected() {
+		return focus_mode;
+	}
+
 }
 /*
 NEUROSKY

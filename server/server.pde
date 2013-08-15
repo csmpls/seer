@@ -52,7 +52,7 @@ void draw() {
   textAlign(CENTER);
   fill(255);
 
-  if (newMessageColor==200) {
+  if (newMessageColor>120 && newMessageColor < 200) {
     disconnectAllUsers();
   }
   
@@ -114,7 +114,7 @@ void draw() {
 void disconnectAllUsers() {
   for (int i = 0; i < users.size(); i++) {
     EEGUser u = (EEGUser)users.get(i);
-    u.client.disconnect();    
+    server.disconnect(u.client);  
   }
   users = new ArrayList<EEGUser>();
 }
