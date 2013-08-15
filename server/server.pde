@@ -51,6 +51,10 @@ void draw() {
   textFont(f);
   textAlign(CENTER);
   fill(255);
+
+  if (newMessageColor==200) {
+    disconnectAllUsers();
+  }
   
   // Print names or IPs of all connected users to the screen
   if (users.size() > 0) { 
@@ -104,6 +108,15 @@ void draw() {
     // Reset newMessageColor to black
     newMessageColor = 0;
   }
+}
+
+
+void disconnectAllUsers() {
+  for (int i = 0; i < users.size(); i++) {
+    EEGUser u = (EEGUser)users.get(i);
+    u.client.disconnect();    
+  }
+  users = new ArrayList<EEGUser>();
 }
 
 void process(String m) {

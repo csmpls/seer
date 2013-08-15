@@ -42,7 +42,7 @@ public class client extends PApplet {
 
 
 
-String server_ip = "127.0.0.1";
+String server_ip = "10.0.1.12";
 
 // Declare a client
 Client client;
@@ -110,7 +110,7 @@ public void draw() {
 
   else
     //draw list of all users
-    text(messageFromServer,width/2,200);
+    drawClientList(messageFromServer); 
 
   // Fade message from server to white
   newMessageColor = constrain(newMessageColor+1,0,255); 
@@ -162,6 +162,13 @@ public void draw() {
   }
 }
 
+public void drawClientList(String msg) {
+  String userlist[] = msg.split(";");
+  for (int i = 0; i < userlist.length; i++) {
+    text(userlist[i], 40, 40+(i*20));
+  }
+}
+
 
 public void username(String theText) {
   // automatically receives results from controller input
@@ -204,11 +211,6 @@ public void sendUserData() {
 }
 
 
-public void stop() {
-  client.stop();
-}
-
-
 
 
 
@@ -246,6 +248,13 @@ public class RequestThread extends Thread {
       }
     }
   }
+}
+
+
+
+
+public void stop() {
+  client.stop();
 }
 /*
 NEUROSKY
