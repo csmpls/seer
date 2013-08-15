@@ -171,9 +171,26 @@ void serverEvent(Server server, Client client) {
   server.write("new:" + client.ip());
   println(incomingMessage);
 
+  // if a client with this IP is already connected, 
+  // we disconnect the existing client
+  // (i.e. we assume this is due to a network error)
+  remove_duplicate_ip(client.ip());
+
   //IMPT NOTE! we're making a new EEGUser with a processing.net.Client as its argument
   // inspect the EEGUser class for the deets.
   users.add(new EEGUser(client));  
+}
+
+
+int remove_duplicate_ip(String ip) {
+  for (int i = 0; i<users.size(); i++) {
+    EEGUser u = users.get(i);
+    if (u.client.ip().equals(ip) {
+      users.remove(i);
+      return 1;
+    }
+  }
+  return 0;
 }
 
 
