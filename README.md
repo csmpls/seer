@@ -11,15 +11,15 @@ Grayed-out names are busy (focusing), names in white are available (not focusing
 To test it out locally, first run the server application, then run the client application.
 
 # Details
-The client/server framework is a simple implementation of multi-user BCI applications. 
+The client/server framework is a simple implementation of a multi-user BCI application. 
 
 ![server screencap](http://cosmopol.is/sauron/server.png)
 
-More abstractly, it is a simple framework for building any sort of multi-user application in Processing - a useful thing to have around in a collaborative software lab.
+More generally, it is a simple framework for building any sort of multi-user application in Processing, which is a useful thing to have lying around.
 
 Eye of Sauron with an arbitrary number of Neurosky headsets. Connection can be over a LAN or over the Internet.
 
-For convenience, all code is written in Processing.
+For details on the focus detector, check [its repo here](https://github.com/csmpls/focus-detector).
 
 ## requirements
 [Processing](http://processing.org)
