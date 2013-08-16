@@ -17,7 +17,7 @@ The client/server framework is a simple implementation of a multi-user BCI appli
 
 More generally, it is a simple framework for building any sort of multi-user application in Processing, which is a useful thing to have lying around.
 
-Eye of Sauron with an arbitrary number of Neurosky headsets. Connection can be over a LAN or over the Internet.
+Eye of Sauron works with an arbitrary number of Neurosky headsets. Connects over a LAN or over the Internet.
 
 For details on the focus detector, check [its repo here](https://github.com/csmpls/focus-detector).
 
