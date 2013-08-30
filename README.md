@@ -21,6 +21,28 @@ Eye of Sauron works with an arbitrary number of Neurosky headsets. Connects over
 
 For details on the focus detector, check [its repo here](https://github.com/csmpls/focus-detector).
 
+# Setup workflow
+
+1. Open & run server.pde
+
+2. open client.pde. Set
+
+~~~
+String server_ip = "";
+~~~
+
+to the server's IP. if you're just testing this locally (i.e. on the same computer), set server_ip to 127.0.0.1
+
+3. In client.pde, take a look at this line:
+
+~~~
+String com_port = "/dev/tty.MindWave";
+~~~
+
+This is the default com port for the Neurosky MindWave on Mac or Linux. A different Neurosky model may have a different ending from .MindWave. On Windows, the path will be different - consult Google for com port path names in Windows.
+
+Should work now - enjoy!
+
 ## requirements
 [Processing](http://processing.org)
 
