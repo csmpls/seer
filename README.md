@@ -2,7 +2,7 @@
 
 ![collablab logo](http://collablab.northwestern.edu/images/logo_horiz.png)
 
-Given a group of people wearing neurosky headsets, Seer sees who in the group is paying attention.
+Given a group of people wearing neurosky headsets, Seer sees who in the group is paying attention to their work.
 
 Grayed-out names are busy (focusing), names in white are available (not focusing).
 
