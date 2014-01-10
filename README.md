@@ -38,10 +38,9 @@ to the server's IP. if you're just testing this locally (i.e. on the same comput
 ~~~
 String com_port = "/dev/tty.MindWave";
 ~~~
-
+S
 This is the default com port for the Neurosky MindWave on Mac or Linux. A different Neurosky model may have a different ending from .MindWave. On Windows, the path will be different - consult Google for com port path names in Windows.
 
-Should work now - enjoy!
 
 ## requirements
 [Processing](http://processing.org)
